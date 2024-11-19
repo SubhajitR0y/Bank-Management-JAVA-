@@ -83,5 +83,7 @@ Choose an option:
 ## Limitations and Future Improvements
 
 · Error Handling: Currently, basic error handling is in place, but additional edge cases (e.g., file access errors) could be further refined.
+
 · Security: Passwords are stored in plaintext; this could be improved by implementing hashing for secure storage.
+
 · Enhanced UI: Additional UI formatting and color could be added to improve readability in the console.
