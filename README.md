@@ -30,20 +30,20 @@ This Java-based program is a simple, console-driven banking application designed
 
 ## Implementation Details
 ### 1. Data Persistence:
-    · All account data is stored in a simple text file (accounts_data.txt). Each time a change is made (e.g., a transaction, account creation, or deletion), the program saves the current state of all accounts to this file, ensuring data is preserved between program runs.
+· All account data is stored in a simple text file (accounts_data.txt). Each time a change is made (e.g., a transaction, account creation, or deletion), the program saves the current state of all accounts to this file, ensuring data is preserved between program runs.
 
 ### 2. Account Management:
-    · Accounts are stored in a HashMap for efficient lookups. Each account contains fields for the username, password, balance, and a transaction history, which is updated for every transaction.
+· Accounts are stored in a HashMap for efficient lookups. Each account contains fields for the username, password, balance, and a transaction history, which is updated for every transaction.
 
 ### 3. Modular Functions:
-    · Account Class: Represents individual user accounts, with methods for depositing, withdrawing, transferring funds, and viewing transactions.
-    · BankingApp Class: Manages the overall flow, including login, account creation, and dashboard navigation for both users and admins.
+· Account Class: Represents individual user accounts, with methods for depositing, withdrawing, transferring funds, and viewing transactions.
+· BankingApp Class: Manages the overall flow, including login, account creation, and dashboard navigation for both users and admins.
 
 ### 4. Animations:
-    · Simple loading animations are included for specific actions, such as saving data, to enhance the user experience.
+· Simple loading animations are included for specific actions, such as saving data, to enhance the user experience.
 
 ### 5. User Input Validation:
-    · The program includes input validation for balance checks, ensuring that users cannot overdraw their accounts or transfer more than they have available.
+· The program includes input validation for balance checks, ensuring that users cannot overdraw their accounts or transfer more than they have available.
 
 # 
 
@@ -60,20 +60,20 @@ java BankingApp
 ```
 
 ### 3. Using the Admin Account:
-    · Use the username admin and password admin123 to access the admin dashboard.
+· Use the username admin and password admin123 to access the admin dashboard.
 
 #
 
 ## Sample Usage
 
 ### 1. User Login/Account Creation:
-    · Upon launching, the program presents options for logging in or creating a new account.
+· Upon launching, the program presents options for logging in or creating a new account.
 
 ### 2. Performing Transactions:
-    · After logging in, users can deposit, withdraw, or transfer funds to another account by selecting the appropriate menu option.
+· After logging in, users can deposit, withdraw, or transfer funds to another account by selecting the appropriate menu option.
 
 ### 3. Viewing Transaction History:
-    · Users can view a list of all their transactions, which is useful for tracking their financial activities.
+· Users can view a list of all their transactions, which is useful for tracking their financial activities.
 
 #
 
