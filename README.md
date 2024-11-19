@@ -17,16 +17,12 @@ This Java-based program is a simple, console-driven banking application designed
 4. Transfer Funds to Other Accounts:
     Users can transfer funds to any other user within the system by specifying the recipient's username and the amount to be transferred. Transaction details are updated for both sender and recipient.
 
-# 
-
 ### Admin Functionality
 1. Admin Dashboard:
     Admins can view all user accounts and their balances, delete specific accounts, and view the total count of accounts. This is useful for overall account management and reporting.
 
 2. Authentication:
     Admins have a unique login with a fixed username and password, allowing for secure access to the admin dashboard.
-
-# 
 
 ## Implementation Details
 ### 1. Data Persistence:
@@ -45,8 +41,6 @@ This Java-based program is a simple, console-driven banking application designed
 ### 5. User Input Validation:
 · The program includes input validation for balance checks, ensuring that users cannot overdraw their accounts or transfer more than they have available.
 
-# 
-
 ## How to Run
 
 ### 1. Compile the Java code:
@@ -62,8 +56,6 @@ java BankingApp
 ### 3. Using the Admin Account:
 · Use the username admin and password admin123 to access the admin dashboard.
 
-#
-
 ## Sample Usage
 
 ### 1. User Login/Account Creation:
@@ -74,8 +66,6 @@ java BankingApp
 
 ### 3. Viewing Transaction History:
 · Users can view a list of all their transactions, which is useful for tracking their financial activities.
-
-#
 
 ## Example Screenshot
 Here's an example of the user dashboard output for reference.
@@ -90,12 +80,8 @@ Here's an example of the user dashboard output for reference.
 Choose an option: 
 ```
 
-#
-
 ## Limitations and Future Improvements
 
-    · Error Handling: Currently, basic error handling is in place, but additional edge cases (e.g., file access errors) could be further refined.
-    · Security: Passwords are stored in plaintext; this could be improved by implementing hashing for secure storage.
-    · Enhanced UI: Additional UI formatting and color could be added to improve readability in the console.
-
-#
+· Error Handling: Currently, basic error handling is in place, but additional edge cases (e.g., file access errors) could be further refined.
+· Security: Passwords are stored in plaintext; this could be improved by implementing hashing for secure storage.
+· Enhanced UI: Additional UI formatting and color could be added to improve readability in the console.
