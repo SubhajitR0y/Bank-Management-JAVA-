@@ -1,32 +1,35 @@
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
-class BankApp {
-    static HashMap<String, Account> customerAccounts = new HashMap<>();
-    static final String DATA_FILE = "data.txt";
+class BankingApp {
+    static HashMap<String, Account> accounts = new HashMap<>();
+    static final String DATA_FILE = "accounts_data.txt";
     static final String ADMIN_USERNAME = "admin";
-    static final String ADMIN_PASSWORD = "adminpass";
+    static final String ADMIN_PASSWORD = "admin123";
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        BankApp app = new BankApp();
+        BankingApp app = new BankingApp();
+        app.showLoadingAnimation("Loading Accounts");
         app.loadAccounts();
-        int choice;
-        System.out.println("=== Welcome to Banking App ===");
-        do {
-            System.out.println("[1] Login\n[2] Create Account");
-            choice = sc.nextInt();
+
+        Scanner sc = new Scanner(System.in);
+        System.out.println("=== Welcome to Secure Banking App ===");
+
+        while (true) {
+            System.out.println("\n[1] Login\n[2] Create Account\n[3] Exit");
+            System.out.print("Choose an option: ");
+            int choice = sc.nextInt();
+            System.out.println();
             if (choice == 1) {
-                app.showLogin(sc);
-                break;
+                app.login(sc);
             } else if (choice == 2) {
-                app.createNewAccount(sc);
+                app.createAccount(sc);
+            } else {
+                System.out.println("Exiting app.");
                 break;
             }
-            System.out.println("Invalid Input.");
-        } while (choice > 2 || choice < 1);
+        }
     }
 
     void loadAccounts() {
@@ -34,198 +37,215 @@ class BankApp {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] data = line.split(",");
-                if (data.length >= 3) {
-                    // Load account data: username, password, and balance
-                    Account account = new Account(data[0], data[1], Float.parseFloat(data[2]));
-
-                    // Load transaction history if available
-                    int i = 3;  // Start reading transactions from the 4th position
-                    while (i < data.length) {
-                        account.transactions.add(data[i++]);
-                    }
-
-                    // Add account to the map
-                    customerAccounts.put(account.username, account);
-                }
+                String username = data[0];
+                String password = data[1];
+                float balance = Float.parseFloat(data[2]);
+                Account account = new Account(username, password, balance);
+                accounts.put(username, account);
             }
-            System.out.println("Data Loaded Successfully.");
+            System.out.println("Accounts Loaded Successfully.\n");
         } catch (IOException e) {
-            System.out.println("Starting with empty data");
+            System.out.println("No saved data found. Starting fresh.");
         }
-    }
-
-    void showLogin(Scanner sc) {
-        System.out.print("Enter Username : ");
-        String username = sc.next();
-        System.out.print("Enter Password : ");
-        String password = sc.next();
-
-        if (username.equals(ADMIN_USERNAME) && password.equals(ADMIN_PASSWORD))
-            showAdminDashboard(sc);
-        else if (customerAccounts.containsKey(username) && customerAccounts.get(username).password.equals(password))
-            showCustomerDashboard(username, sc);
-        else {
-            System.out.println("[1] Create Account [2] Exit");
-            if (sc.nextInt() == 1)
-                createNewAccount(sc);
-            else
-                System.out.println("Exiting");
-        }
-    }
-
-    void createNewAccount(Scanner sc) {
-        String username = "", password = "";
-        System.out.print("Create Username (one word only): ");
-        username = sc.next();
-
-        while (customerAccounts.containsKey(username)) {
-            System.out.println("Username not available. Try another.");
-            System.out.print("Create Username: ");
-            username = sc.next();
-        }
-
-        System.out.print("Create Password: ");
-        password = sc.next();
-
-        System.out.print("Starting Deposit: ");
-        float initialDeposit = sc.nextFloat();
-
-        Account newAccount = new Account(username, password, initialDeposit);
-        customerAccounts.put(username, newAccount);
-        saveAccounts();
-        System.out.println("[1] Login [2] Exit");
-        if (sc.nextInt() == 1)
-            showLogin(sc);
-        else
-            System.out.println("Exiting");
     }
 
     void saveAccounts() {
+        showLoadingAnimation("Saving Accounts");
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(DATA_FILE))) {
-            for (Account account : customerAccounts.values()) {
+            for (Account account : accounts.values()) {
                 bw.write(account.toString());
                 bw.newLine();
             }
         } catch (IOException e) {
-            System.out.println("Error saving data.");
+            System.out.println("Error saving account data.");
         }
     }
 
-    void showCustomerDashboard(String username, Scanner sc) {
-        Account account = customerAccounts.get(username);
-        int choice;
-        do {
-            System.out.println("=== Customer Dashboard ===");
-            System.out.println("[1] View Balance\n[2] Deposit\n[3] Withdraw\n[4] Transfer\n[5] View Transactions\n[6] Logout");
-            choice = sc.nextInt();
-            if (choice == 6)
-                break;
-            performCustomerActions(choice, account, sc);
-            saveAccounts();
-        } while (true);
+    void login(Scanner sc) {
+        System.out.print("Enter username: ");
+        String username = sc.next();
+        System.out.print("Enter password: ");
+        String password = sc.next();
+
+        if (ADMIN_USERNAME.equals(username) && ADMIN_PASSWORD.equals(password)) {
+            adminDashboard(sc);
+        } else if (accounts.containsKey(username) && accounts.get(username).password.equals(password)) {
+            userDashboard(sc, accounts.get(username));
+        } else {
+            System.out.println("Invalid credentials. Try again.");
+        }
     }
 
-    void performCustomerActions(int choice, Account account, Scanner sc) {
-        switch (choice) {
-            case 1 -> System.out.println("Balance : ₹" + account.balance);
-            case 2 -> {
-                    System.out.print("Enter deposit amount: ");
-                    account.deposit(sc.nextFloat());
+    void createAccount(Scanner sc) {
+        System.out.print("Choose a username: ");
+        String username = sc.next();
+
+        if (accounts.containsKey(username)) {
+            System.out.println("Username taken. Choose another.");
+            return;
+        }
+
+        System.out.print("Create a password: ");
+        String password = sc.next();
+        System.out.print("Initial deposit amount: ");
+        float initialDeposit = sc.nextFloat();
+        if (initialDeposit < 0) {
+            System.out.println("Deposit amount must be positive.");
+            return;
+        }
+
+        Account newAccount = new Account(username, password, initialDeposit);
+        accounts.put(username, newAccount);
+        saveAccounts();
+        System.out.println("Account created successfully!");
+    }
+
+    void userDashboard(Scanner sc, Account account) {
+        while (true) {
+            System.out.println("\n=== User Dashboard ===");
+            System.out.println("[1] View Balance\n[2] Deposit\n[3] Withdraw\n[4] Transfer Money\n[5] View Transactions\n[6] Logout");
+            System.out.print("Choose an option: ");
+            int choice = sc.nextInt();
+            System.out.println();
+
+            switch (choice) {
+                case 1 : System.out.println("Balance: ₹" + account.balance);
+                case 2 : {
+                    System.out.print("Deposit amount: ");
+                    float amount = sc.nextFloat();
+                    if (amount <= 0) {
+                        System.out.println("Amount must be positive.");
+                    } else {
+                        showLoadingAnimation("Processing Deposit");
+                        account.deposit(amount);
+                        saveAccounts();
+                    }
                 }
-            case 3 -> {
-                    System.out.print("Enter withdrawal amount: ");
-                    account.withdraw(sc.nextFloat());
+                case 3 : {
+                    System.out.print("Withdraw amount: ");
+                    float amount = sc.nextFloat();
+                    if (amount > account.balance) {
+                        System.out.println("Insufficient funds.");
+                    } else if (amount <= 0) {
+                        System.out.println("Amount must be positive.");
+                    } else {
+                        showLoadingAnimation("Processing Withdrawal");
+                        account.withdraw(amount);
+                        saveAccounts();
+                    }
                 }
-            case 4 -> {
-                    System.out.print("Enter recipient username: ");
-                    String recipient = sc.next();
+                case 4 : {
+                    System.out.print("Enter recipient's username: ");
+                    String recipientUsername = sc.next();
                     System.out.print("Enter transfer amount: ");
-                    account.transfer(customerAccounts.get(recipient), sc.nextFloat());
+                    float amount = sc.nextFloat();
+
+                    if (!accounts.containsKey(recipientUsername)) {
+                        System.out.println("Recipient not found.");
+                    } else if (amount <= 0) {
+                        System.out.println("Transfer amount must be positive.");
+                    } else if (amount > account.balance) {
+                        System.out.println("Insufficient funds.");
+                    } else {
+                        Account recipient = accounts.get(recipientUsername);
+                        showLoadingAnimation("Processing Transfer");
+                        account.transferTo(recipient, amount);
+                        saveAccounts();
+                    }
                 }
-            case 5 -> account.viewTransactions();
-            default -> System.out.println("Invalid Input. Try Again");
+                case 5 : account.viewTransactions();
+                case 6 : { return; }
+                default : System.out.println("Invalid choice.");
+            }
+            System.out.println();
         }
     }
 
-    void showAdminDashboard(Scanner sc) {
-        int choice;
-        do {
-            System.out.println("=== Admin Dashboard ===");
-            System.out.println("[1] View All Accounts\n[2] Close Account\n[3] View Account Count\n[4] Logout");
-            choice = sc.nextInt();
-            if (choice == 4)
-                break;
-            performAdminActions(choice, sc);
-            saveAccounts();
-        } while (true);
-    }
+    void adminDashboard(Scanner sc) {
+        while (true) {
+            System.out.println("\n=== Admin Dashboard ===");
+            System.out.println("[1] View All Accounts\n[2] Delete Account\n[3] Logout");
+            System.out.print("Choose an option: ");
+            int choice = sc.nextInt();
+            System.out.println();
 
-    void performAdminActions(int choice, Scanner sc) {
-        switch (choice) {
-            case 1 -> customerAccounts.values().forEach(acc -> System.out.println("User: " + acc.username + " Balance: ₹" + acc.balance));
-            case 2 -> {
-                    System.out.print("Enter username to close account: ");
-                    customerAccounts.remove(sc.next());
-                    System.out.println("Account closed successfully.");
+            switch (choice) {
+                case 1 : accounts.values().forEach(acc -> System.out.println(acc));
+                case 2 : {
+                    System.out.print("Enter username to delete: ");
+                    String username = sc.next();
+                    if (accounts.remove(username) != null) {
+                        System.out.println("Account deleted.");
+                        saveAccounts();
+                    } else {
+                        System.out.println("Account not found.");
+                    }
                 }
-            case 3 -> System.out.println("Total number of accounts: " + customerAccounts.size());
-            default -> System.out.println("Invalid option. Try Again.");
+                case 3 : { return; }
+                default : System.out.println("Invalid choice.");
+            }
+            System.out.println();
         }
     }
 
+    void showLoadingAnimation(String message) {
+        System.out.print(message);
+        for (int i = 0; i < 3; i++) {
+            System.out.print(".");
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                System.out.println("Animation interrupted.");
+            }
+        }
+        System.out.println();
+    }
 }
 
 class Account {
     String username;
     String password;
     float balance;
-    ArrayList<String> transactions = new ArrayList<>();
-    Loan currentLoan;
+    StringBuilder transactions = new StringBuilder();
 
     Account(String username, String password, float balance) {
         this.username = username;
         this.password = password;
         this.balance = balance;
+        addTransaction("Account created with balance ₹" + balance);
     }
 
     void deposit(float amount) {
         balance += amount;
-        transactions.add("Deposited ₹" + amount);
-        System.out.println("Deposit successful. New balance: ₹" + balance);
+        addTransaction("Deposited: ₹" + amount);
+        System.out.println("Deposit successful. Balance: ₹" + balance);
     }
 
     void withdraw(float amount) {
-        if (amount <= balance) {
-            balance -= amount;
-            transactions.add("Withdrew ₹" + amount);
-            System.out.println("Withdrawal successful. New balance: ₹" + balance);
-        } else
-            System.out.println("Insufficient funds.");
+        balance -= amount;
+        addTransaction("Withdrew: ₹" + amount);
+        System.out.println("Withdrawal successful. Balance: ₹" + balance);
     }
 
-    void transfer(Account recipient, float amount) {
-        if (amount <= balance) {
-            balance -= amount;
-            recipient.balance += amount;
-            transactions.add("Transferred ₹" + amount + " to " + recipient.username);
-            recipient.transactions.add("Received ₹" + amount + " from " + username);
-            System.out.println("Transfer successful. New balance: ₹" + balance);
-        } else
-            System.out.println("Insufficient funds.");
+    void transferTo(Account recipient, float amount) {
+        balance -= amount;
+        recipient.balance += amount;
+        addTransaction("Transferred: ₹" + amount + " to " + recipient.username);
+        recipient.addTransaction("Received: ₹" + amount + " from " + username);
+        System.out.println("Transfer successful. New balance: ₹" + balance);
     }
 
     void viewTransactions() {
         System.out.println("Transaction History:");
-        for (String transaction : transactions)
-            System.out.println(transaction);
+        System.out.println(transactions);
+    }
+
+    void addTransaction(String transaction) {
+        transactions.append(transaction).append("\n");
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(username + "," + password + "," + balance);
-        for (String transaction : transactions) {
-            sb.append(",").append(transaction);
-        }
-        return sb.toString();
+        return username + "," + password + "," + balance;
     }
 }
