@@ -33,6 +33,7 @@ This Java-based program is a simple, console-driven banking application designed
 
 ### 3. Modular Functions:
 · Account Class: Represents individual user accounts, with methods for depositing, withdrawing, transferring funds, and viewing transactions.
+
 · BankingApp Class: Manages the overall flow, including login, account creation, and dashboard navigation for both users and admins.
 
 ### 4. Animations:
