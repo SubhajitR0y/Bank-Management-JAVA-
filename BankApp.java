@@ -1,251 +1,179 @@
 import java.io.*;
-import java.util.HashMap;
-import java.util.Scanner;
-
-class BankingApp {
-    static HashMap<String, Account> accounts = new HashMap<>();
-    static final String DATA_FILE = "accounts_data.txt";
-    static final String ADMIN_USERNAME = "admin";
-    static final String ADMIN_PASSWORD = "admin123";
-
-    public static void main(String[] args) {
-        BankingApp app = new BankingApp();
-        app.showLoadingAnimation("Loading Accounts");
-        app.loadAccounts();
-
-        Scanner sc = new Scanner(System.in);
-        System.out.println("=== Welcome to Secure Banking App ===");
-
+import java.util.*;
+public class BankManagementSystem {
+    private static Scanner sc = new Scanner(System.in);
+    private static final String ACCOUNT_FOLDER_PATH = "C:\\Users\\debma\\Desktop\\db";
+    public static void main() throws IOException, ClassNotFoundException {
+        File accountFolder = new File(ACCOUNT_FOLDER_PATH);
+        if (!accountFolder.exists()) {
+            System.out.println("Specified account folder does not exist!");
+            return;
+        }
         while (true) {
-            System.out.println("\n[1] Login\n[2] Create Account\n[3] Exit");
-            System.out.print("Choose an option: ");
+            System.out.println("\nWelcome to the Bank Management System");
+            System.out.println("1. Create New Account");
+            if (accountFolder.list().length > 0) { // Check if accounts exist
+                System.out.println("2. Login");
+            }
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
             int choice = sc.nextInt();
-            System.out.println();
-            if (choice == 1) {
-                app.login(sc);
-            } else if (choice == 2) {
-                app.createAccount(sc);
-            } else {
-                System.out.println("Exiting app.");
-                break;
+            sc.nextLine(); // Consume newline
+            switch (choice) {
+                case 1:
+                    createNewAccount(accountFolder);
+                    break;
+                case 2:
+                    if (accountFolder.list().length > 0) {
+                        login(accountFolder);
+                    } else {
+                        System.out.println("No accounts available. Please create a new account.");
+                    }
+                    break;
+                case 3:
+                    System.out.println("Exiting the system. Goodbye!");
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
             }
         }
     }
-
-    void loadAccounts() {
-        try (BufferedReader br = new BufferedReader(new FileReader(DATA_FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(",");
-                String username = data[0];
-                String password = data[1];
-                float balance = Float.parseFloat(data[2]);
-                Account account = new Account(username, password, balance);
-                accounts.put(username, account);
-            }
-            System.out.println("Accounts Loaded Successfully.\n");
-        } catch (IOException e) {
-            System.out.println("No saved data found. Starting fresh.");
-        }
-    }
-
-    void saveAccounts() {
-        showLoadingAnimation("Saving Accounts");
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(DATA_FILE))) {
-            for (Account account : accounts.values()) {
-                bw.write(account.toString());
-                bw.newLine();
-            }
-        } catch (IOException e) {
-            System.out.println("Error saving account data.");
-        }
-    }
-
-    void login(Scanner sc) {
+    // Create a new account
+    private static void createNewAccount(File accountFolder) throws IOException {
         System.out.print("Enter username: ");
-        String username = sc.next();
+        String username = sc.nextLine();
+        File accountFile = new File(accountFolder, username + ".dat");
+        if (accountFile.exists()) {
+            System.out.println("Account with this username already exists. Try another username.");
+            return;
+        }
         System.out.print("Enter password: ");
-        String password = sc.next();
-
-        if (ADMIN_USERNAME.equals(username) && ADMIN_PASSWORD.equals(password)) {
-            adminDashboard(sc);
-        } else if (accounts.containsKey(username) && accounts.get(username).password.equals(password)) {
-            userDashboard(sc, accounts.get(username));
-        } else {
-            System.out.println("Invalid credentials. Try again.");
-        }
-    }
-
-    void createAccount(Scanner sc) {
-        System.out.print("Choose a username: ");
-        String username = sc.next();
-
-        if (accounts.containsKey(username)) {
-            System.out.println("Username taken. Choose another.");
-            return;
-        }
-
-        System.out.print("Create a password: ");
-        String password = sc.next();
-        System.out.print("Initial deposit amount: ");
-        float initialDeposit = sc.nextFloat();
-        if (initialDeposit < 0) {
-            System.out.println("Deposit amount must be positive.");
-            return;
-        }
-
-        Account newAccount = new Account(username, password, initialDeposit);
-        accounts.put(username, newAccount);
-        saveAccounts();
+        String password = sc.nextLine();
+        System.out.print("Enter initial deposit: ");
+        double initialBalance = sc.nextDouble();
+        sc.nextLine(); // Consume newline
+        // Create account object
+        Account newAccount = new Account(username, password, initialBalance);
+        // Save account to file
+        saveAccount(accountFile, newAccount);
         System.out.println("Account created successfully!");
     }
-
-    void userDashboard(Scanner sc, Account account) {
+    // Login to an account
+    private static void login(File accountFolder) throws IOException, ClassNotFoundException {
+        System.out.print("Enter username: ");
+        String username = sc.nextLine();
+        File accountFile = new File(accountFolder, username + ".dat");
+        if (!accountFile.exists()) {
+            System.out.println("No such account found. Please check the username.");
+            return;
+        }
+        System.out.print("Enter password: ");
+        String password = sc.nextLine();
+        Account account = loadAccount(accountFile);
+        if (!account.getPassword().equals(password)) {
+            System.out.println("Incorrect password. Login failed.");
+            return;
+        }
+        System.out.println("Login successful! Welcome, " + account.getUsername());
+        userMenu(account, accountFile);
+    }
+    // User menu
+    private static void userMenu(Account account, File accountFile) throws IOException {
         while (true) {
-            System.out.println("\n=== User Dashboard ===");
-            System.out.println("[1] View Balance\n[2] Deposit\n[3] Withdraw\n[4] Transfer Money\n[5] View Transactions\n[6] Logout");
-            System.out.print("Choose an option: ");
+            System.out.println("\nWelcome, " + account.getUsername() + "!");
+            System.out.println("1. Deposit Money");
+            System.out.println("2. Withdraw Money");
+            System.out.println("3. Check Balance");
+            System.out.println("4. View Transaction History");
+            System.out.println("5. Logout");
+            System.out.print("Enter your choice: ");
             int choice = sc.nextInt();
-            System.out.println();
-
+            sc.nextLine(); // Consume newline
             switch (choice) {
-                case 1 : System.out.println("Balance: ₹" + account.balance);
-                case 2 : {
-                    System.out.print("Deposit amount: ");
-                    float amount = sc.nextFloat();
-                    if (amount <= 0) {
-                        System.out.println("Amount must be positive.");
+                case 1:
+                    System.out.print("Enter amount to deposit: ");
+                    double depositAmount = sc.nextDouble();
+                    sc.nextLine(); // Consume newline
+                    account.deposit(depositAmount);
+                    saveAccount(accountFile, account);
+                    System.out.println("Deposit successful!");
+                    break;
+                case 2:
+                    System.out.print("Enter amount to withdraw: ");
+                    double withdrawAmount = sc.nextDouble();
+                    sc.nextLine(); // Consume newline
+                    if (account.withdraw(withdrawAmount)) {
+                        saveAccount(accountFile, account);
+                        System.out.println("Withdrawal successful!");
                     } else {
-                        showLoadingAnimation("Processing Deposit");
-                        account.deposit(amount);
-                        saveAccounts();
+                        System.out.println("Insufficient balance. Withdrawal failed.");
                     }
-                }
-                case 3 : {
-                    System.out.print("Withdraw amount: ");
-                    float amount = sc.nextFloat();
-                    if (amount > account.balance) {
-                        System.out.println("Insufficient funds.");
-                    } else if (amount <= 0) {
-                        System.out.println("Amount must be positive.");
-                    } else {
-                        showLoadingAnimation("Processing Withdrawal");
-                        account.withdraw(amount);
-                        saveAccounts();
+                    break;
+                case 3:
+                    System.out.println("Your current balance is: " + account.getBalance());
+                    break;
+                case 4:
+                    System.out.println("Transaction History:");
+                    for (String transaction : account.getTransactions()) {
+                        System.out.println(transaction);
                     }
-                }
-                case 4 : {
-                    System.out.print("Enter recipient's username: ");
-                    String recipientUsername = sc.next();
-                    System.out.print("Enter transfer amount: ");
-                    float amount = sc.nextFloat();
-
-                    if (!accounts.containsKey(recipientUsername)) {
-                        System.out.println("Recipient not found.");
-                    } else if (amount <= 0) {
-                        System.out.println("Transfer amount must be positive.");
-                    } else if (amount > account.balance) {
-                        System.out.println("Insufficient funds.");
-                    } else {
-                        Account recipient = accounts.get(recipientUsername);
-                        showLoadingAnimation("Processing Transfer");
-                        account.transferTo(recipient, amount);
-                        saveAccounts();
-                    }
-                }
-                case 5 : account.viewTransactions();
-                case 6 : { return; }
-                default : System.out.println("Invalid choice.");
+                    break;
+                case 5:
+                    System.out.println("Logged out successfully.");
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
             }
-            System.out.println();
         }
     }
-
-    void adminDashboard(Scanner sc) {
-        while (true) {
-            System.out.println("\n=== Admin Dashboard ===");
-            System.out.println("[1] View All Accounts\n[2] Delete Account\n[3] Logout");
-            System.out.print("Choose an option: ");
-            int choice = sc.nextInt();
-            System.out.println();
-
-            switch (choice) {
-                case 1 : accounts.values().forEach(acc -> System.out.println(acc));
-                case 2 : {
-                    System.out.print("Enter username to delete: ");
-                    String username = sc.next();
-                    if (accounts.remove(username) != null) {
-                        System.out.println("Account deleted.");
-                        saveAccounts();
-                    } else {
-                        System.out.println("Account not found.");
-                    }
-                }
-                case 3 : { return; }
-                default : System.out.println("Invalid choice.");
-            }
-            System.out.println();
+    // Save account to a file
+    private static void saveAccount(File accountFile, Account account) throws IOException {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(accountFile))) {
+            oos.writeObject(account);
         }
     }
-
-    void showLoadingAnimation(String message) {
-        System.out.print(message);
-        for (int i = 0; i < 3; i++) {
-            System.out.print(".");
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                System.out.println("Animation interrupted.");
-            }
+    // Load account from a file
+    private static Account loadAccount(File accountFile) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(accountFile))) {
+            return (Account) ois.readObject();
         }
-        System.out.println();
     }
 }
-
-class Account {
-    String username;
-    String password;
-    float balance;
-    StringBuilder transactions = new StringBuilder();
-
-    Account(String username, String password, float balance) {
+// Account class
+class Account implements Serializable {
+    private String username;
+    private String password;
+    private double balance;
+    private List<String> transactions;
+    public Account(String username, String password, double balance) {
         this.username = username;
         this.password = password;
         this.balance = balance;
-        addTransaction("Account created with balance ₹" + balance);
+        this.transactions = new ArrayList<>();
+        transactions.add("Account created with balance: " + balance);
     }
-
-    void deposit(float amount) {
+    public String getUsername() {
+        return username;
+    }
+    public String getPassword() {
+        return password;
+    }
+    public double getBalance() {
+        return balance;
+    }
+    public List<String> getTransactions() {
+        return transactions;
+    }
+    public void deposit(double amount) {
         balance += amount;
-        addTransaction("Deposited: ₹" + amount);
-        System.out.println("Deposit successful. Balance: ₹" + balance);
+        transactions.add("Deposited: " + amount);
     }
-
-    void withdraw(float amount) {
+    public boolean withdraw(double amount) {
+        if (amount > balance) {
+            return false;
+        }
         balance -= amount;
-        addTransaction("Withdrew: ₹" + amount);
-        System.out.println("Withdrawal successful. Balance: ₹" + balance);
-    }
-
-    void transferTo(Account recipient, float amount) {
-        balance -= amount;
-        recipient.balance += amount;
-        addTransaction("Transferred: ₹" + amount + " to " + recipient.username);
-        recipient.addTransaction("Received: ₹" + amount + " from " + username);
-        System.out.println("Transfer successful. New balance: ₹" + balance);
-    }
-
-    void viewTransactions() {
-        System.out.println("Transaction History:");
-        System.out.println(transactions);
-    }
-
-    void addTransaction(String transaction) {
-        transactions.append(transaction).append("\n");
-    }
-
-    @Override
-    public String toString() {
-        return username + "," + password + "," + balance;
+        transactions.add("Withdrew: " + amount);
+        return true;
     }
 }
